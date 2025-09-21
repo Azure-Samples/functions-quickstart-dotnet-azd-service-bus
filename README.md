@@ -1,19 +1,19 @@
 ---
-description: This end-to-end Python sample demonstrates the secure triggering of a Flex Consumption plan app from a Service Bus instance secured in a virtual network.
+description: This end-to-end .NET C# sample demonstrates the secure triggering of a Flex Consumption plan app from a Service Bus instance secured in a virtual network.
 page_type: sample
 products:
 - azure-functions
 - azure
 urlFragment: service-bus-trigger-virtual-network
 languages:
-- python
+- csharp
 - bicep
 - azdeveloper
 ---
 
-# Azure Functions Python Service Bus Trigger using Azure Developer CLI
+# Azure Functions .NET C# Service Bus Trigger using Azure Developer CLI
 
-This template repository contains a Service Bus trigger reference sample for functions written in Python and deployed to Azure using the Azure Developer CLI (`azd`). The sample uses managed identity and a virtual network to make sure deployment is secure by default. This sample demonstrates these two key features of the Flex Consumption plan:
+This template repository contains a Service Bus trigger reference sample for functions written in .NET C# and deployed to Azure using the Azure Developer CLI (`azd`). The sample uses managed identity and a virtual network to make sure deployment is secure by default. This sample demonstrates these two key features of the Flex Consumption plan:
 
 * **High scale**. A low concurrency of 1 is configured for the function app in the `host.json` file. Once messages are loaded into Service Bus and the app is started, you can see how it scales to one app instance per message simultaneously.
 * **Virtual network integration**. The Service Bus that this Flex Consumption app reads events from is secured behind a private endpoint. The function app can read events from it because it is configured with VNet integration. All connections to Service Bus and to the storage account associated with the Flex Consumption app also use managed identity connections instead of connection strings.
@@ -29,12 +29,12 @@ This sample processes queue-based events, demonstrating a common Azure Functions
 
 ## Prerequisites
 
-+ [Python 3.8 or later](https://www.python.org/downloads/)
-+ [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local?tabs=v4%2Clinux%2Cpython%2Cportal%2Cbash#install-the-azure-functions-core-tools)
++ [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
++ [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local?tabs=v4%2Clinux%2Ccsharp%2Cportal%2Cbash#install-the-azure-functions-core-tools)
 + To use Visual Studio Code to run and debug locally:
   + [Visual Studio Code](https://code.visualstudio.com/)
   + [Azure Functions extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azurefunctions)
-  + [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
+  + [C# extension](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp)
 + [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) (for deployment)
 + [Azure Developer CLI](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd?tabs=winget-windows%2Cbrew-mac%2Cscript-linux&pivots=os-windows)
 + An Azure subscription with Microsoft.Web and Microsoft.App [registered resource providers](https://learn.microsoft.com/azure/azure-resource-manager/management/resource-providers-and-types#register-resource-provider)
@@ -46,7 +46,7 @@ You can initialize a project from this `azd` template in one of these ways:
 + Use this `azd init` command from an empty local (root) folder:
 
     ```shell
-    azd init --template functions-quickstart-python-azd-service-bus
+    azd init --template functions-quickstart-dotnet-azd-service-bus
     ```
 
     Supply an environment name, such as `flexquickstart` when prompted. In `azd`, the environment is used to maintain a unique deployment context for your app.
@@ -54,8 +54,8 @@ You can initialize a project from this `azd` template in one of these ways:
 + Clone the GitHub template repository locally using the `git clone` command:
 
     ```shell
-    git clone https://github.com/Azure-Samples/functions-quickstart-python-azd-service-bus.git
-    cd functions-quickstart-python-azd-service-bus
+    git clone https://github.com/Azure-Samples/functions-quickstart-dotnet-azd-service-bus.git
+    cd functions-quickstart-dotnet-azd-service-bus
     ```
 
     You can also clone the repository from your own fork in GitHub.
@@ -69,7 +69,7 @@ You can initialize a project from this `azd` template in one of these ways:
         "IsEncrypted": false,
         "Values": {
             "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-            "FUNCTIONS_WORKER_RUNTIME": "python",
+            "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
             "ServiceBusConnection": "",
             "ServiceBusQueueName": "testqueue"
         }
@@ -79,17 +79,11 @@ You can initialize a project from this `azd` template in one of these ways:
     > [!NOTE]
     > The `ServiceBusConnection` will be empty for local development. You'll need an actual Service Bus connection for full testing, which will be provided after deployment to Azure.
 
-2. (Optional) Create a Python virtual environment and activate it:
+2. Navigate to the `src` folder and restore the .NET packages:
 
     ```shell
-    python -m venv .venv
-    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-    ```
-
-3. Install the required Python packages:
-
-    ```shell
-    pip install -r src/requirements.txt
+    cd src
+    dotnet restore
     ```
 
 ## Run your app from the terminal
@@ -107,7 +101,7 @@ You can initialize a project from this `azd` template in one of these ways:
 
     ```
     Functions:
-        servicebus_queue_trigger: serviceBusQueueTrigger
+        ServiceBusQueueTrigger: serviceBusQueueTrigger
     ```
 
 3. To fully test the Service Bus functionality, you'll need to deploy to Azure first (see [Deploy to Azure](#deploy-to-azure) section) and then send messages through the Azure portal.
@@ -124,33 +118,49 @@ You can initialize a project from this `azd` template in one of these ways:
 
 ## Source Code
 
-The Service Bus trigger function is defined in [`src/function_app.py`](./src/function_app.py). The function uses the `@app.service_bus_queue_trigger` decorator to define the trigger configuration.
+The Service Bus trigger function is defined in [`src/ServiceBusQueueTrigger.cs`](./src/ServiceBusQueueTrigger.cs). The function uses the `[ServiceBusTrigger]` attribute to define the trigger configuration.
 
 This code shows the Service Bus queue trigger:
 
-```python
-import azure.functions as func
-import logging
-import time
+```csharp
+using System;
+using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Logging;
 
-app = func.FunctionApp()
+namespace ServiceBusProcessor
+{
+    public class ServiceBusQueueTrigger
+    {
+        private readonly ILogger<ServiceBusQueueTrigger> _logger;
 
-@app.service_bus_queue_trigger(arg_name="azservicebus", queue_name="%ServiceBusQueueName%",
-                               connection="ServiceBusConnection") 
-def servicebus_queue_trigger(azservicebus: func.ServiceBusMessage):
-    logging.info('Python ServiceBus Queue trigger start processing a message: %s',
-                azservicebus.get_body().decode('utf-8'))
-    time.sleep(30)
-    logging.info('Python ServiceBus Queue trigger end processing a message')
+        public ServiceBusQueueTrigger(ILogger<ServiceBusQueueTrigger> logger)
+        {
+            _logger = logger;
+        }
+
+        [Function("ServiceBusQueueTrigger")]
+        public async Task Run([ServiceBusTrigger("%ServiceBusQueueName%", Connection = "ServiceBusConnection")] 
+            string messageBody, FunctionContext context)
+        {
+            _logger.LogInformation("C# ServiceBus Queue trigger start processing a message: {messageBody}", messageBody);
+            
+            // Simulate processing time with a 30-second delay to demonstrate scaling behavior
+            await Task.Delay(TimeSpan.FromSeconds(30));
+            
+            _logger.LogInformation("C# ServiceBus Queue trigger end processing a message");
+        }
+    }
+}
 ```
 
 Key aspects of this code:
 
-+ The `@app.service_bus_queue_trigger` decorator configures the function to trigger when messages arrive in the specified Service Bus queue
++ The `[ServiceBusTrigger]` attribute configures the function to trigger when messages arrive in the specified Service Bus queue
 + The queue name is read from the `ServiceBusQueueName` environment variable using the `%ServiceBusQueueName%` syntax
 + The connection string is read from the `ServiceBusConnection` setting
-+ The function includes a 30-second `time.sleep(30)` delay to simulate message processing time and demonstrate the scaling behavior
-+ Each message body is logged for debugging purposes
++ The function includes a 30-second `await Task.Delay(TimeSpan.FromSeconds(30))` delay to simulate message processing time and demonstrate the scaling behavior
++ Each message body is logged for debugging purposes using structured logging
 
 The function configuration in [`src/host.json`](./src/host.json) sets `maxConcurrentCalls` to 1 for the Service Bus extension:
 

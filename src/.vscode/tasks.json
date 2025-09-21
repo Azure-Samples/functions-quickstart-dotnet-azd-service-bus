@@ -5,23 +5,16 @@
 			"type": "func",
 			"label": "func: host start",
 			"command": "host start",
-			"problemMatcher": "$func-python-watch",
+			"problemMatcher": "$func-dotnet-watch",
 			"isBackground": true,
-			"dependsOn": "pip install (functions)"
+			"dependsOn": "dotnet build (functions)"
 		},
 		{
-			"label": "pip install (functions)",
+			"label": "dotnet build (functions)",
 			"type": "shell",
-			"osx": {
-				"command": "${config:azureFunctions.pythonVenv}/bin/python -m pip install -r requirements.txt"
-			},
-			"windows": {
-				"command": "${config:azureFunctions.pythonVenv}\\Scripts\\python -m pip install -r requirements.txt"
-			},
-			"linux": {
-				"command": "${config:azureFunctions.pythonVenv}/bin/python -m pip install -r requirements.txt"
-			},
-			"problemMatcher": []
+			"command": "dotnet build",
+			"problemMatcher": "$msCompile",
+			"group": "build"
 		}
 	]
 }

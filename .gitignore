@@ -566,3 +566,6 @@ FodyWeavers.xsd
 infra/**/*.json
 !infra/main.json
 !infra/main.parameters.json
+
+# Compiled ARM template output from bicep build
+infra/main.json

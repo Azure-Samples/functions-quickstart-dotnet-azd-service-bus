@@ -29,7 +29,7 @@ This sample processes queue-based events, demonstrating a common Azure Functions
 
 ## Prerequisites
 
-+ [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
++ [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 + [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local?tabs=v4%2Clinux%2Ccsharp%2Cportal%2Cbash#install-the-azure-functions-core-tools)
 + To use Visual Studio Code to run and debug locally:
   + [Visual Studio Code](https://code.visualstudio.com/)
@@ -60,9 +60,43 @@ You can initialize a project from this `azd` template in one of these ways:
 
     You can also clone the repository from your own fork in GitHub.
 
-## Prepare your local environment
+## Authenticate to Azure
 
-1. Navigate to the `src` app folder and create a file in that folder named `local.settings.json` that contains this JSON data:
+Sign in with both the Azure Developer CLI and Azure CLI. The generated message sender uses `az rest`, which requires a separate Azure CLI sign-in.
+
+```shell
+azd auth login
+az login
+az account set --subscription "<subscription-id>"
+```
+
+Use the same subscription when `azd` prompts you during provisioning.
+
+## Provision Azure resources
+
+1. Run the following command to provision all required Azure resources:
+
+    ```shell
+    azd provision
+    ```
+
+    You're prompted to supply these required deployment parameters:
+
+    | Parameter | Description |
+    | ---- | ---- |
+    | _Environment name_ | An environment that's used to maintain a unique deployment context for your app. You won't be prompted if you created the local project using `azd init`. |
+    | _Azure subscription_ | Subscription in which your resources are created. |
+    | _Azure location_ | Azure region in which to create the resource group that contains the new Azure resources. Only regions that currently support the Flex Consumption plan are shown. |
+    | _VNET_ENABLED_ | Whether to deploy with VNet integration and private endpoints. Enter `false` for this quickstart. |
+
+    This creates all necessary Azure resources including:
+    - Azure Service Bus namespace and queue
+    - Azure Function App (Flex Consumption)
+    - Application Insights for monitoring
+    - Storage Account for function app
+    - Virtual Network with private endpoints (if `VNET_ENABLED=true`)
+
+    After provisioning completes, a post-provision script automatically generates `src/local.settings.json` with the correct Service Bus connection settings:
 
     ```json
     {
@@ -70,14 +104,11 @@ You can initialize a project from this `azd` template in one of these ways:
         "Values": {
             "AzureWebJobsStorage": "UseDevelopmentStorage=true",
             "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-            "ServiceBusConnection": "",
-            "ServiceBusQueueName": "testqueue"
+            "ServiceBusConnection__fullyQualifiedNamespace": "<your-namespace>.servicebus.windows.net",
+            "ServiceBusQueueName": "<your-queue-name>"
         }
     }
     ```
-
-    > [!NOTE]
-    > The `ServiceBusConnection` will be empty for local development. You'll need an actual Service Bus connection for full testing, which will be provided after deployment to Azure.
 
 2. Navigate to the `src` folder and restore the .NET packages:
 
@@ -86,35 +117,34 @@ You can initialize a project from this `azd` template in one of these ways:
     dotnet restore
     ```
 
-## Run your app from the terminal
+## Run your app locally
 
-1. From the `src` folder, run this command to start the Functions host locally:
+1. Start the Azurite storage emulator. You can do this using the [Azurite extension](https://marketplace.visualstudio.com/items?itemName=Azurite.azurite) in VS Code or by running `azurite` in a separate terminal.
+
+2. From the `src` folder, run this command to start the Functions host locally:
 
     ```shell
-    func start
+    dotnet run
     ```
 
-    > [!NOTE]
-    > Since this function uses a Service Bus trigger, it will start but won't process messages until connected to an actual Service Bus queue. The function will be ready and waiting for messages.
-
-2. The function will start and display the available functions. You should see output similar to:
+3. The function will start and display the available functions. You should see output similar to:
 
     ```
     Functions:
         ServiceBusQueueTrigger: serviceBusQueueTrigger
     ```
 
-3. To fully test the Service Bus functionality, you'll need to deploy to Azure first (see [Deploy to Azure](#deploy-to-azure) section) and then send messages through the Azure portal.
+    The function is now running locally and connected to the remote Service Bus resource you provisioned. You can send test messages using the Service Bus Explorer in the Azure Portal.
 
 4. When you're done, press Ctrl+C in the terminal window to stop the `func` host process.
 
 ## Run your app using Visual Studio Code
 
 1. Open the project root folder in Visual Studio Code.
-2. Open the `src` folder in the terminal within VS Code.
-3. Press **Run/Debug (F5)** to run in the debugger. 
+2. Start the Azurite storage emulator.
+3. Press **Run/Debug (F5)** to run in the debugger.
 4. The Azure Functions extension will automatically detect your function and start the local runtime.
-5. The function will start and be ready to receive Service Bus messages (though local testing requires an actual Service Bus connection).
+5. The function connects to the remote Service Bus resource provisioned in Azure.
 
 ## Source Code
 
@@ -178,44 +208,52 @@ This configuration ensures that each function instance processes only one messag
 
 ## Deploy to Azure
 
-Run this command to provision the function app, with any required Azure resources, and deploy your code:
+Run this command to deploy your function app code to Azure:
 
 ```shell
-azd up
+azd deploy
 ```
 
-You're prompted to supply these required deployment parameters:
-
-| Parameter | Description |
-| ---- | ---- |
-| _Environment name_ | An environment that's used to maintain a unique deployment context for your app. You won't be prompted if you created the local project using `azd init`. |
-| _Azure subscription_ | Subscription in which your resources are created. |
-| _Azure location_ | Azure region in which to create the resource group that contains the new Azure resources. Only regions that currently support the Flex Consumption plan are shown. |
-
-After deployment completes successfully, `azd` provides you with the URL endpoints and resource information for your new function app.
+This builds the .NET project and deploys it to the function app provisioned earlier.
 
 ## Test the solution
 
-1. Once deployment is complete, you can test the Service Bus trigger functionality:
+1. With the function running (either locally via `dotnet run` or deployed to Azure), send a test message to the Service Bus queue by running the generated script:
 
-2. **Configure Service Bus access**: You'll need to configure your client IP address in the Service Bus firewall to send test messages:
-   ![Service Bus networking page adding client IP address to firewall](./img/sb-addclientip.png)
+    ```shell
+    ./send-message.sh
+    ```
 
-3. **Send test messages**: Use the Service Bus Explorer in the Azure Portal to send messages to the Service Bus queue. Follow [Use Service Bus Explorer to run data operations on Service Bus](https://learn.microsoft.com/en-us/azure/service-bus-messaging/explorer) to send messages and peek messages from the queue.
-   ![Service Bus explorer showing messages in the queue](./img/sb-messages.png)
+    On Windows (PowerShell):
 
-4. **Monitor scaling behavior**: 
-   - Send 1,000 messages using the Service Bus Explorer
+    ```powershell
+    ./send-message.ps1
+    ```
+
+    On Windows (cmd):
+
+    ```cmd
+    powershell -File send-message.ps1
+    ```
+
+    These scripts were generated by the post-provision step with your Service Bus namespace and queue name already filled in.
+
+2. You should see output in the function's terminal similar to:
+
+    ```output
+    [2024-11-10T10:30:15.123Z] C# ServiceBus Queue trigger start processing a message: Hello from the CLI
+    [2024-11-10T10:30:45.123Z] C# ServiceBus Queue trigger end processing a message
+    ```
+
+3. **Monitor scaling behavior** (after deploying to Azure):
+   - Send multiple messages in quick succession
    - Open Application Insights live metrics and observe the number of instances ('servers online')
    - Notice your app scaling the number of instances to handle processing the messages
    - Given the purposeful 30-second delay in the app code, you should see messages being processed in 30-second intervals once the app's maximum instance count (default of 100) is reached
-   ![Live metrics available](./img/live-metrics.png)
-
-The sample telemetry should show that your messages are triggering the function and making their way from Service Bus through the VNet into the function app for processing.
 
 ## Redeploy your code
 
-You can run the `azd up` command as many times as you need to both provision your Azure resources and deploy code updates to your function app.
+You can run `azd deploy` as many times as you need to deploy code updates to your function app. If you need to update infrastructure, run `azd provision` again.
 
 > [!NOTE]
 > Deployed code files are always overwritten by the latest deployment package.

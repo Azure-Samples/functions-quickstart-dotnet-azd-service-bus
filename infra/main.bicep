@@ -68,7 +68,7 @@ module processor './app/processor.bicep' = {
     applicationInsightsName: monitoring.outputs.name
     appServicePlanId: appServicePlan.outputs.resourceId
     runtimeName: 'dotnet-isolated'
-    runtimeVersion: '8.0'
+    runtimeVersion: '10.0'
     storageAccountName: storage.outputs.name
     identityId: processorUserAssignedIdentity.outputs.resourceId
     identityClientId: processorUserAssignedIdentity.outputs.clientId
@@ -270,3 +270,5 @@ output AZURE_LOCATION string = location
 output AZURE_TENANT_ID string = tenant().tenantId
 output SERVICE_PROCESSOR_NAME string = processor.outputs.SERVICE_PROCESSOR_NAME
 output AZURE_FUNCTION_NAME string = processor.outputs.SERVICE_PROCESSOR_NAME
+output SERVICE_BUS_CONNECTION__fullyQualifiedNamespace string = '${serviceBus.outputs.name}.servicebus.windows.net'
+output SERVICE_BUS_QUEUE_NAME string = !empty(serviceBusQueueName) ? serviceBusQueueName : '${abbrs.serviceBusNamespacesQueues}${resourceToken}'

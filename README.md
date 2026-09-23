@@ -60,6 +60,18 @@ You can initialize a project from this `azd` template in one of these ways:
 
     You can also clone the repository from your own fork in GitHub.
 
+## Authenticate to Azure
+
+Sign in with both the Azure Developer CLI and Azure CLI. The generated message sender uses `az rest`, which requires a separate Azure CLI sign-in.
+
+```shell
+azd auth login
+az login
+az account set --subscription "<subscription-id>"
+```
+
+Use the same subscription when `azd` prompts you during provisioning.
+
 ## Provision Azure resources
 
 1. Run the following command to provision all required Azure resources:
@@ -75,7 +87,7 @@ You can initialize a project from this `azd` template in one of these ways:
     | _Environment name_ | An environment that's used to maintain a unique deployment context for your app. You won't be prompted if you created the local project using `azd init`. |
     | _Azure subscription_ | Subscription in which your resources are created. |
     | _Azure location_ | Azure region in which to create the resource group that contains the new Azure resources. Only regions that currently support the Flex Consumption plan are shown. |
-    | _VNET_ENABLED_ | Whether to deploy with VNet integration and private endpoints. Enter `false` unless you need private networking. |
+    | _VNET_ENABLED_ | Whether to deploy with VNet integration and private endpoints. Enter `false` for this quickstart. |
 
     This creates all necessary Azure resources including:
     - Azure Service Bus namespace and queue

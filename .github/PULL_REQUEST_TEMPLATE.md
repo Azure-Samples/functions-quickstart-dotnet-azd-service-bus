@@ -4,26 +4,28 @@
 
 ## Does this introduce a breaking change?
 <!-- Mark one with an "x". -->
-```
-[ ] Yes
-[ ] No
-```
+
+- [ ] Yes
+- [ ] No
+
 
 ## Pull Request Type
+
 What kind of change does this Pull Request introduce?
 
 <!-- Please check the one that applies to this PR using "x". -->
-```
-[ ] Bugfix
-[ ] Feature
-[ ] Code style update (formatting, local variables)
-[ ] Refactoring (no functional changes, no api changes)
-[ ] Documentation content changes
-[ ] Other... Please describe:
-```
+
+- [ ] Bugfix
+- [ ] Feature
+- [ ] Code style update (formatting, local variables)
+- [ ] Refactoring (no functional changes, no api changes)
+- [ ] Documentation content changes
+- [ ] Other... Please describe:
+
 
 ## How to Test
-*  Get the code
+
+* Get the code
 
 ```
 git clone [repo-address]
@@ -38,8 +40,16 @@ npm install
 ```
 
 ## What to Check
+
 Verify that the following are valid
+
 * ...
+
+## Deployment Proof
+<!-- Provide evidence of a successful deployment from a clean environment. Include screenshots or logs showing:
+  1. Successful `azd up` deployment with no errors
+  2. Azure Functions triggered and running successfully (e.g., portal screenshots, Application Insights logs, or live metrics)
+-->
 
 ## Other Information
 <!-- Add any other helpful information that may be needed here. -->

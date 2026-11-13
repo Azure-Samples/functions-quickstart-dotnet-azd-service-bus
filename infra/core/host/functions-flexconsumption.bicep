@@ -16,11 +16,11 @@ param identityClientId string = ''
 
 // Runtime Properties
 @allowed([
-  'dotnet-isolated', 'node', 'python', 'java', 'powershell', 'custom'
+  'dotnet-isolated'
 ])
 param runtimeName string
-@allowed(['3.10', '3.11', '3.12', '7.4', '8.0', '10', '11', '17', '20'])
-param runtimeVersion string
+@allowed(['10.0', '11.0'])
+param runtimeVersion string = '10.0'
 param kind string = 'functionapp,linux'
 
 // Microsoft.Web/sites/config
@@ -37,6 +37,12 @@ var baseAppSettings = {
 
 var appInsightsSettings = !empty(applicationInsightsName) ? {
   APPLICATIONINSIGHTS_CONNECTION_STRING: applicationInsights.properties.ConnectionString
+  AzureMonitorExporter__credential: 'managedidentity'
+} : {}
+
+// The worker's Azure Monitor exporter authenticates with the app's managed identity (system-assigned when no client ID is set).
+var appInsightsIdentitySettings = !empty(applicationInsightsName) && identityType == 'UserAssigned' ? {
+  AzureMonitorExporter__clientId: identityClientId
 } : {}
 
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
@@ -85,7 +91,7 @@ resource functions 'Microsoft.Web/sites@2023-12-01' = {
 
   resource configAppSettings 'config' = {
     name: 'appsettings'
-    properties: union(appSettings, baseAppSettings, appInsightsSettings)
+    properties: union(appSettings, baseAppSettings, appInsightsSettings, appInsightsIdentitySettings)
   }
 }
 

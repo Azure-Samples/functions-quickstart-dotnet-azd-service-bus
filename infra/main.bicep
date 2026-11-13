@@ -35,9 +35,8 @@ var tags = { 'azd-env-name': environmentName }
 var appName = !empty(processorServiceName) ? processorServiceName : '${abbrs.webSitesFunctions}${resourceToken}'
 // Generate a unique container name that will be used for deployments.
 var deploymentStorageContainerName = 'app-package-${take(appName, 32)}-${take(resourceToken, 7)}'
-@description('Id of the user or app to assign application roles')
+@description('Id of the user identity to be used for testing and debugging. Role assignments for this principal use principalType User. This is not required in production. Leave empty if not needed.')
 param principalId string = ''
-var principalIds = !empty(principalId) ? [processorUserAssignedIdentity.outputs.principalId, principalId] : [processorUserAssignedIdentity.outputs.principalId]
 
 // Organize resources in a resource group
 resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
@@ -120,7 +119,19 @@ module storageBlobDataOwnerRoleDefinitionApi 'app/storage-Access.bicep' = [for r
   params: {
     storageAccountName: storage.outputs.name
     roleId: roleId
-    principalIds: principalIds
+    principalId: processorUserAssignedIdentity.outputs.principalId
+    principalType: 'ServicePrincipal'
+  }
+}]
+
+module storageBlobDataOwnerRoleDefinitionUser 'app/storage-Access.bicep' = [for roleId in roleIds: if (!empty(principalId)) {
+  name: 'blobDataOwnerUser${roleId}'
+  scope: rg
+  params: {
+    storageAccountName: storage.outputs.name
+    roleId: roleId
+    principalId: principalId
+    principalType: 'User'
   }
 }]
 
@@ -167,7 +178,19 @@ module ServiceBusDataOwnerRoleAssignment 'app/servicebus-Access.bicep' = [for ro
   params: {
     serviceBusNamespaceName: serviceBus.outputs.name
     roleDefinitionId: roleId
-    principalIds: principalIds
+    principalId: processorUserAssignedIdentity.outputs.principalId
+    principalType: 'ServicePrincipal'
+  }
+}]
+
+module ServiceBusDataOwnerRoleAssignmentUser 'app/servicebus-Access.bicep' = [for roleId in ServiceBusRoleDefinitionIds: if (!empty(principalId)) {
+  name: 'sbRoleAssignmentUser${roleId}'
+  scope: rg
+  params: {
+    serviceBusNamespaceName: serviceBus.outputs.name
+    roleDefinitionId: roleId
+    principalId: principalId
+    principalType: 'User'
   }
 }]
 
@@ -178,7 +201,19 @@ module appInsightsMetricsPublisherRole 'app/appinsights-Access.bicep' = {
   params: {
     applicationInsightsName: monitoring.outputs.name
     roleId: '3913510d-42f4-4e42-8a64-420c390055eb' // Monitoring Metrics Publisher
-    principalIds: principalIds
+    principalId: processorUserAssignedIdentity.outputs.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+module appInsightsMetricsPublisherRoleUser 'app/appinsights-Access.bicep' = if (!empty(principalId)) {
+  name: 'appInsightsMetricsPublisherUser'
+  scope: rg
+  params: {
+    applicationInsightsName: monitoring.outputs.name
+    roleId: '3913510d-42f4-4e42-8a64-420c390055eb' // Monitoring Metrics Publisher
+    principalId: principalId
+    principalType: 'User'
   }
 }
 
@@ -268,5 +303,8 @@ module monitoring 'br/public:avm/res/insights/component:0.6.0' = {
 // App outputs
 output AZURE_LOCATION string = location
 output AZURE_TENANT_ID string = tenant().tenantId
+output AZURE_RESOURCE_GROUP string = rg.name
 output SERVICE_PROCESSOR_NAME string = processor.outputs.SERVICE_PROCESSOR_NAME
 output AZURE_FUNCTION_NAME string = processor.outputs.SERVICE_PROCESSOR_NAME
+output SERVICE_BUS_CONNECTION__fullyQualifiedNamespace string = '${serviceBus.outputs.name}.servicebus.windows.net'
+output SERVICE_BUS_QUEUE_NAME string = !empty(serviceBusQueueName) ? serviceBusQueueName : '${abbrs.serviceBusNamespacesQueues}${resourceToken}'

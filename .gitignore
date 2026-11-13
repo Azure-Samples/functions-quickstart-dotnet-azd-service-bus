@@ -489,6 +489,14 @@ bin
 obj
 appsettings.json
 local.settings.json
+send-message.sh
+send-message.ps1
+
+# Azurite
+__blobstorage__/
+__queuestorage__/
+__azurite_db_*__.json
+AzuriteConfig
 *.azurepubxml
 *.PublishSettings
 
@@ -562,7 +570,6 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
-# Bicep compiled ARM templates
+# Bicep compiled ARM templates (e.g. infra/main.json from bicep build)
 infra/**/*.json
-!infra/main.json
 !infra/main.parameters.json

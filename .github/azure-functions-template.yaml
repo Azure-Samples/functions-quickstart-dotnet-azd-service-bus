@@ -1,0 +1,11 @@
+schemaVersion: 1
+
+identity: Azure.Functions.Templates.ServiceBusDotNet
+description: Create a .NET isolated Azure Functions application that processes Azure Service Bus queue messages.
+
+projects:
+  - name: Azure Functions Service Bus Queue Trigger (.NET)
+    shortName: functions-dotnet-servicebus
+    root: src
+    stack: dotnet
+    language: "C#"

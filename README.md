@@ -268,6 +268,14 @@ When you're done working with your function app and related resources, you can u
 azd down
 ```
 
+## CLI template authoring
+
+The [template descriptor](.github/azure-functions-template.yaml) declares `src` as one independently selectable .NET C# project template for the planned Azure Functions CLI v5 packaging pipeline.
+
+The template content is limited to the `src` subtree, with the repository license retained by the packager. It does not include `infra`, `azure.yaml`, or the repository-level solution and does not provision Azure resources. Service Bus access and local settings must be configured separately.
+
+Adding this descriptor does not publish a package or enable CLI consumption. Central onboarding, release validation, and packaging integration are separate steps. The existing `azd` workflow documented above is unchanged.
+
 ## Resources
 
 For more information on Azure Functions, Service Bus, and VNet integration, see the following resources:

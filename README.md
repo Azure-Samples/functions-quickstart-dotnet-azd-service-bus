@@ -270,11 +270,11 @@ azd down
 
 ## CLI template authoring
 
-The [template descriptor](.github/azure-functions-template.yaml) declares `src` as one independently selectable .NET C# project template for the planned Azure Functions CLI v5 packaging pipeline.
+The [authored template](.template.config/template.json) preserves the QuickStart layout: the Functions app stays in `src/`, alongside root-level `azure.yaml`, the solution, and the Bicep files and deployment scripts in `infra/`.
 
-The template content is limited to the `src` subtree, with the repository license retained by the packager. It does not include `infra`, `azure.yaml`, or the repository-level solution and does not provision Azure resources. Service Bus access and local settings must be configured separately.
+Generating the template does not deploy resources. Use the `azd` workflow above to provision and deploy, including the existing `VNET_ENABLED` setting to choose whether to enable VNet integration.
 
-Adding this descriptor does not publish a package or enable CLI consumption. Central onboarding, release validation, and packaging integration are separate steps. The existing `azd` workflow documented above is unchanged.
+This configuration does not publish a package or enable Azure Functions CLI v5 consumption. Central onboarding and CLI packaging and validation are separate steps.
 
 ## Resources
 

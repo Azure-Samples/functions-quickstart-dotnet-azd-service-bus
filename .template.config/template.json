@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Azure Functions",
+  "classifications": [ "Azure Functions", "Service Bus", "QuickStart" ],
+  "identity": "Azure.Functions.Templates.ServiceBusDotNet.functions-dotnet-servicebus",
+  "name": "Azure Functions Service Bus QuickStart (.NET)",
+  "shortName": "functions-dotnet-servicebus",
+  "description": "Create a .NET isolated Azure Functions app that processes Service Bus queue messages, with Bicep infrastructure for deployment using azd.",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sources": [
+    {
+      "include": [
+        ".gitignore",
+        "azure.yaml",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md",
+        "e2e-workspace",
+        "functions-quickstart-dotnet-azd-service-bus.sln",
+        "LICENSE.md",
+        "README.md",
+        "img/**",
+        "infra/**",
+        "src/**"
+      ]
+    }
+  ],
+  "primaryOutputs": [
+    { "path": "src/host.json" }
+  ]
+}

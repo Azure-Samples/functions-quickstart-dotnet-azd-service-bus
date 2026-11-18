@@ -4,7 +4,7 @@
   "classifications": [ "Azure Functions", "Service Bus", "QuickStart" ],
   "identity": "Azure.Functions.Templates.ServiceBusDotNet.functions-dotnet-servicebus",
   "name": "Azure Functions Service Bus QuickStart (.NET)",
-  "shortName": "functions-dotnet-servicebus",
+  "shortName": "functions-quickstart-dotnet-servicebus",
   "description": "Create a .NET isolated Azure Functions app that processes Service Bus queue messages, with Bicep infrastructure for deployment using azd.",
   "tags": {
     "language": "C#",

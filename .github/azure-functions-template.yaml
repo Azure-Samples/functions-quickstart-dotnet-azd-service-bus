@@ -1,3 +1,4 @@
+# This descriptor drives template package creation in the packaging pipeline.
 schemaVersion: 1
 
 identity: Azure.Functions.Templates.ServiceBusDotNet

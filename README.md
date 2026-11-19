@@ -268,14 +268,6 @@ When you're done working with your function app and related resources, you can u
 azd down
 ```
 
-## CLI template authoring
-
-The [template descriptor](.github/azure-functions-template.yaml) declares the repository root as the content boundary for `functions-quickstart-dotnet-servicebus`. It relies on the [proposed nested host discovery rule](https://github.com/Azure/azure-functions-core-tools/pull/5945): the packaging pipeline would generate `template.json` with `src/host.json` as the primary output, preserving `azure.yaml`, `infra/`, and the solution in their existing locations.
-
-Generating the template does not deploy resources. Use the `azd` workflow above to provision and deploy, including the existing `VNET_ENABLED` setting to choose whether to enable VNet integration.
-
-The descriptor does not publish a package or enable Azure Functions CLI v5 consumption. The synthesis rule and packaging implementation are prerequisites for this layout.
-
 ## Resources
 
 For more information on Azure Functions, Service Bus, and VNet integration, see the following resources:

@@ -1,0 +1,12 @@
+# This descriptor drives template package creation in the packaging pipeline.
+schemaVersion: 1
+
+identity: Azure.Functions.Templates.ServiceBusDotNet
+description: Create a .NET isolated Azure Functions app that processes Service Bus queue messages, with Bicep infrastructure for deployment using azd.
+
+projects:
+  - name: Azure Functions Service Bus QuickStart (.NET)
+    shortName: functions-quickstart-dotnet-servicebus
+    root: .
+    stack: dotnet
+    language: "C#"
